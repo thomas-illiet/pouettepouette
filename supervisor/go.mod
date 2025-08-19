@@ -4,7 +4,6 @@ go 1.25
 
 require (
 	github.com/Netflix/go-env v0.1.2
-	github.com/prometheus/procfs v0.17.0
 	github.com/ramr/go-reaper v0.3.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.9.1

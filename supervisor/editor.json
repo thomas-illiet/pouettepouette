@@ -1,0 +1,16 @@
+{
+  "name": "vscode",
+  "version":"1.1.1",
+  "entrypoint": "/Users/thomas-illiet/GolandProjects/Opencoder/fake-ide/main_fakeide",
+  "entrypointArgs": [],
+  "logRateLimit": 1024,
+  "readinessProbe": {
+    "type": "http",
+    "http": {
+      "schema": "http",
+      "host": "localhost",
+      "port": 3000,
+      "path": "/"
+    }
+  }
+}

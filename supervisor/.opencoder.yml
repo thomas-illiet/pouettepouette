@@ -1,0 +1,29 @@
+env:
+  DB_HOST: localhost:3306
+  DB_USER: readOnlyUser
+tasks:
+  - before: sh ./scripts/setup.sh
+    init: npm install
+    command: npm run dev
+  - name: Database
+    init: sh ./scripts/seed-database.sh
+    command: npm start-db
+    env:
+      DB_HOST: localhost:3306
+      DB_USER: readOnlyUser
+ports:
+  - name: Website
+    port: 3000
+    onOpen: open-preview
+  - name: VNC
+    description: full GUI Virtual Desktop
+    port: 6080
+    onOpen: open-browser
+  - name: Server
+    port: 10000
+    onOpen: ignore
+vscode:
+  extensions:
+    - svelte.svelte-vscode
+    - bradlc.vscode-tailwindcss@0.6.11
+    - https://example.com/abc/releases/extension-0.26.0.vsix

@@ -13,7 +13,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
-	"supervisor/pkg/supervisor"
+	"supervisor/pkg/config"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -39,7 +39,7 @@ var initCmd = &cobra.Command{
 		defer logFile.Close()
 
 		// Retrieve supervisor configuration
-		cfg, err := supervisor.GetConfig()
+		cfg, err := config.GetConfig()
 		if err != nil {
 			log.WithError(err).Info("cannot load config")
 		}

@@ -1,14 +1,13 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"supervisor/pkg/supervisor"
 
-	common_grpc "common/grpc"
+	"github.com/spf13/cobra"
 )
 
-var runOpts struct {
-	RunGP bool
+func init() {
+	rootCmd.AddCommand(runCmd)
 }
 
 var runCmd = &cobra.Command{
@@ -16,16 +15,10 @@ var runCmd = &cobra.Command{
 	Short: "starts the supervisor",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		logFile := initLog(!runOpts.RunGP)
+		logFile := initLog(false)
 		defer logFile.Close()
 
-		common_grpc.SetupLogging()
 		supervisor.Version = Version
 		supervisor.Run()
 	},
-}
-
-func init() {
-	rootCmd.AddCommand(runCmd)
-	runCmd.Flags().BoolVar(&runOpts.RunGP, "rungp", false, "run ==supervisor in a run-gp context")
 }
