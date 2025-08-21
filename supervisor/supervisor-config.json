@@ -1,3 +1,4 @@
 {
-  "editorConfigLocation": "/Users/thomas-illiet/GolandProjects/Opencoder/supervisor/editor.json"
+  "editorConfigLocation": "/Users/thomas-illiet/GolandProjects/Opencoder/supervisor/editor.json",
+  "apiEndpointPort": 22999
 }

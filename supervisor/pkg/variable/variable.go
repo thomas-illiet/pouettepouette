@@ -51,7 +51,7 @@ func buildChildProcEnv(cfg *config.Config) []string {
 	}
 
 	// Add supervisor-specific variables
-	envMap["SUPERVISOR_ADDR"] = fmt.Sprintf("localhost:%d", cfg.Static.APIEndpointPort)
+	envMap["SUPERVISOR_ADDR"] = fmt.Sprintf("localhost:%d", cfg.APIEndpointPort)
 
 	// Convert map back to slice for exec.Cmd
 	var envList []string
@@ -68,8 +68,7 @@ func isBlacklisted(name string) bool {
 
 	prefixBlacklist := []string{
 		"OPENCODER",
-		"KUBERNETES_SERVICE",
-		"KUBERNETES_PORT",
+		"KUBERNETES",
 	}
 
 	for _, prefix := range prefixBlacklist {

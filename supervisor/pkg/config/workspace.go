@@ -8,6 +8,9 @@ import (
 )
 
 type WorkspaceConfig struct {
+	// FlavorName is the name of the flavor
+	FlavorName string `env:"OPENCODER_FLAVOR_NAME"`
+
 	// WorkspaceID is the ID of the workspace
 	WorkspaceID int64 `env:"OPENCODER_WORKSPACE_ID"`
 

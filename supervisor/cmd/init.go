@@ -162,7 +162,7 @@ var initCmd = &cobra.Command{
 			// We received a terminating signal, pass it to the supervisor and wait for it to finish
 			ignoreUnexpectedExitCode.Store(true)
 
-			ctx, cancel := context.WithTimeout(context.Background(), cfg.Workspace.GetTerminationGracePeriod())
+			ctx, cancel := context.WithTimeout(context.Background(), cfg.GetTerminationGracePeriod())
 			defer cancel()
 
 			slog := newShutdownLogger()

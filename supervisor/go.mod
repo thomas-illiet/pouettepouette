@@ -3,6 +3,8 @@ module supervisor
 go 1.25
 
 require (
+	github.com/c9s/goprocinfo v0.0.0-20210130143923-c95fcf8c64a8
+	github.com/containerd/cgroups v1.1.0
 	github.com/Netflix/go-env v0.1.2
 	github.com/ramr/go-reaper v0.3.1
 	github.com/sirupsen/logrus v1.9.3

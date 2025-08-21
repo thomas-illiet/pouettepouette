@@ -5,4 +5,5 @@ use (
 	common
 	supervisor-api
 	fake-ide
+	client
 )
