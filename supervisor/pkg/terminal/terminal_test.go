@@ -1,7 +1,3 @@
-// Copyright (c) 2020 Gitpod GmbH. All rights reserved.
-// Licensed under the GNU Affero General Public License (AGPL).
-// See License.AGPL.txt in the project root for license information.
-
 package terminal
 
 import (
@@ -11,14 +7,13 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"supervisor/api"
 	"testing"
 	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-
-	"github.com/gitpod-io/gitpod/supervisor/api"
 )
 
 func TestTitle(t *testing.T) {

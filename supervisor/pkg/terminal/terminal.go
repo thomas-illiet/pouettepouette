@@ -1,11 +1,9 @@
-// Copyright (c) 2020 Gitpod GmbH. All rights reserved.
-// Licensed under the GNU Affero General Public License (AGPL).
-// See License.AGPL.txt in the project root for license information.
-
 package terminal
 
 import (
 	"bytes"
+	"common/log"
+	"common/process"
 	"context"
 	"errors"
 	"fmt"
@@ -13,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"supervisor/api"
 	"sync"
 	"syscall"
 	"time"
@@ -22,11 +21,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
-	"golang.org/x/xerrors"
-
-	"github.com/gitpod-io/gitpod/common-go/log"
-	"github.com/gitpod-io/gitpod/common-go/process"
-	"github.com/gitpod-io/gitpod/supervisor/api"
 )
 
 const (
@@ -67,7 +61,7 @@ func (m *Mux) Start(cmd *exec.Cmd, options TermOptions) (alias string, err error
 
 	uid, err := uuid.NewRandom()
 	if err != nil {
-		return "", xerrors.Errorf("cannot produce alias: %w", err)
+		return "", fmt.Errorf("cannot produce alias: %w", err)
 	}
 	alias = uid.String()
 
@@ -161,7 +155,7 @@ func (m *Mux) doClose(ctx context.Context, alias string, forceSuccess bool) erro
 
 // terminalBacklogSize is the number of bytes of output we'll store in RAM for each terminal.
 // The higher this number is, the better the UX, but the higher the resource requirements are.
-// For now we assume an average of five terminals per workspace, which makes this consume 1MiB of RAM.
+// For now, we assume an average of five terminals per workspace, which makes this consume 1MiB of RAM.
 const terminalBacklogSize = 256 << 10
 
 func newTerm(alias string, cmd *exec.Cmd, options TermOptions) (*Term, error) {
@@ -197,14 +191,14 @@ func newTerm(alias string, cmd *exec.Cmd, options TermOptions) (*Term, error) {
 
 	pty, pts, err := _pty.Open()
 	if err != nil {
-		pts.Close()
-		pty.Close()
-		return nil, xerrors.Errorf("cannot start PTY: %w", err)
+		_ = pts.Close()
+		_ = pty.Close()
+		return nil, fmt.Errorf("cannot start PTY: %w", err)
 	}
 
 	if err := _pty.Setsize(pty, &size); err != nil {
-		pts.Close()
-		pty.Close()
+		_ = pts.Close()
+		_ = pty.Close()
 		return nil, err
 	}
 
@@ -236,10 +230,10 @@ func newTerm(alias string, cmd *exec.Cmd, options TermOptions) (*Term, error) {
 	attr.Cflag &^= CBAUD | CBAUDEX
 	attr.Cflag |= unix.B38400
 
-	err = unix.IoctlSetTermios(int(pts.Fd()), syscall.TCSETS, &attr)
+	err = setTermAttr(int(pts.Fd()), &attr)
 	if err != nil {
-		pts.Close()
-		pty.Close()
+		_ = pts.Close()
+		_ = pty.Close()
 		return nil, err
 	}
 
@@ -254,8 +248,8 @@ func newTerm(alias string, cmd *exec.Cmd, options TermOptions) (*Term, error) {
 	cmd.SysProcAttr.Setctty = true
 
 	if err := cmd.Start(); err != nil {
-		pts.Close()
-		pty.Close()
+		_ = pts.Close()
+		_ = pty.Close()
 		return nil, err
 	}
 
@@ -412,9 +406,10 @@ func (term *Term) Close(ctx context.Context) error {
 	var commandErr error
 	if term.Command.Process != nil {
 		commandErr = process.TerminateSync(ctx, term.Command.Process.Pid)
-		if process.IsNotChildProcess(commandErr) {
-			commandErr = nil
-		}
+		// TODO
+		//if process.IsNotChildProcess(commandErr) {
+		//	commandErr = nil
+		//}
 	}
 
 	writeErr := term.Stdout.Close()
@@ -524,7 +519,7 @@ func (mw *multiWriter) Listen() io.ReadCloser {
 	})
 }
 
-// Listen listens in on the multi-writer stream with given options.
+// ListenWithOptions listens in on the multi-writer stream with given options.
 func (mw *multiWriter) ListenWithOptions(options TermListenOptions) io.ReadCloser {
 	mw.mu.Lock()
 	defer mw.mu.Unlock()
@@ -571,9 +566,9 @@ func (mw *multiWriter) ListenWithOptions(options TermListenOptions) io.ReadClose
 
 		if res.closeErr != nil {
 			log.WithError(res.closeErr).Error("terminal listener droped out")
-			w.CloseWithError(res.closeErr)
+			_ = w.CloseWithError(res.closeErr)
 		} else {
-			w.Close()
+			_ = w.Close()
 		}
 
 		mw.mu.Lock()
@@ -608,13 +603,13 @@ func (mw *multiWriter) Write(p []byte) (n int, err error) {
 		select {
 		case lstr.cchan <- p:
 		case <-time.After(lstr.timeout):
-			lstr.CloseWithError(ErrReadTimeout)
+			_ = lstr.CloseWithError(ErrReadTimeout)
 		}
 
 		select {
 		case <-lstr.done:
 		case <-time.After(lstr.timeout):
-			lstr.CloseWithError(ErrReadTimeout)
+			_ = lstr.CloseWithError(ErrReadTimeout)
 		}
 	}
 	return len(p), nil

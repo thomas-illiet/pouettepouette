@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package supervisor;
+
+option go_package = 'supervisor/api';
+
+service PackageService {
+  // Lists all available packages.
+  rpc List(ListPackageRequest) returns (ListPackageResponse) {}
+
+  // Retrieves detailed information about a specific package by ID.
+  rpc Get(GetPackageRequest) returns (GetPackageResponse) {}
+
+  // Install the binary content of a specific package by ID.
+  rpc Install(InstallPackageRequest) returns ( InstallPackageResponse) {}
+
+  // Remove the binary content of a specific package by ID.
+  rpc Remove(RemovePackageRequest) returns ( RemovePackageResponse) {}
+}
+
+//region List
+
+message ListPackageRequest { }
+message ListPackageResponse {
+  // List of available packages.
+  repeated GetPackageResponse packages = 1;
+}
+
+//endregion List
+
+//region Get
+
+// Enum representing possible package statuses.
+enum PackageStatus {
+  PACKAGE_STATUS_UNSPECIFIED = 0;
+  PACKAGE_STATUS_INSTALLED = 1;
+  PACKAGE_STATUS_NOT_INSTALLED = 2;
+  PACKAGE_STATUS_UPDATABLE = 3;
+}
+
+message GetPackageRequest {
+  // Unique identifier of the package.
+  int64 id = 1;
+}
+message GetPackageResponse {
+  // Unique identifier of the package.
+  int64 id = 1;
+  // Name of the package.
+  string name = 2;
+  // Description of the package.
+  string description = 3;
+  // Installation status of the package.
+  PackageStatus Status = 4;
+  // Version of the package.
+  string version = 5;
+}
+
+//endregion Get
+
+
+//region Install
+
+message InstallPackageRequest {
+  // Unique identifier of the package.
+  int64 id = 1;
+}
+message  InstallPackageResponse {
+  string status = 1;
+}
+
+//endregion Install
+
+//region Remove
+
+message RemovePackageRequest {
+  // Unique identifier of the package.
+  int64 id = 1;
+}
+message  RemovePackageResponse {
+  string status = 1;
+}
+
+//endregion Remove

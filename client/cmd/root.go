@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"client/cmd/ping"
+	"client/cmd/pkg"
 	"client/cmd/system"
 	"client/cmd/tasks"
 	"client/cmd/workspace"
@@ -51,6 +52,7 @@ func init() {
 	rootCmd.AddCommand(tasks.Cmd)
 	rootCmd.AddCommand(system.Cmd)
 	rootCmd.AddCommand(workspace.Cmd)
+	rootCmd.AddCommand(pkg.Cmd)
 	rootCmd.AddCommand(versionCmd)
 }
 

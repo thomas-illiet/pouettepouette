@@ -1,28 +1,21 @@
-// Copyright (c) 2020 Gitpod GmbH. All rights reserved.
-// Licensed under the GNU Affero General Public License (AGPL).
-// See License.AGPL.txt in the project root for license information.
-
 package terminal
 
 import (
+	"common/log"
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"supervisor/api"
 	"syscall"
 	"time"
 
 	"github.com/creack/pty"
-	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
-
-	"github.com/gitpod-io/gitpod/common-go/log"
-	"github.com/gitpod-io/gitpod/supervisor/api"
 )
 
 // NewMuxTerminalService creates a new terminal service.
@@ -33,7 +26,7 @@ func NewMuxTerminalService(m *Mux) *MuxTerminalService {
 	}
 	return &MuxTerminalService{
 		Mux:            m,
-		DefaultWorkdir: "/workspace",
+		DefaultWorkdir: "/home/workspace",
 		DefaultShell:   shell,
 		Env:            os.Environ(),
 	}
@@ -59,11 +52,6 @@ type MuxTerminalService struct {
 // RegisterGRPC registers a gRPC service.
 func (srv *MuxTerminalService) RegisterGRPC(s *grpc.Server) {
 	api.RegisterTerminalServiceServer(s, srv)
-}
-
-// RegisterREST registers a REST service.
-func (srv *MuxTerminalService) RegisterREST(mux *runtime.ServeMux, grpcEndpoint string) error {
-	return api.RegisterTerminalServiceHandlerFromEndpoint(context.Background(), mux, grpcEndpoint, []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())})
 }
 
 // Open opens a new terminal running the shell.
@@ -111,12 +99,7 @@ func (srv *MuxTerminalService) OpenWithOptions(ctx context.Context, req *api.Ope
 		}
 	}
 
-	if srv.DefaultAmbientCaps != nil {
-		if cmd.SysProcAttr == nil {
-			cmd.SysProcAttr = &syscall.SysProcAttr{}
-		}
-		cmd.SysProcAttr.AmbientCaps = srv.DefaultAmbientCaps
-	}
+	srv.setAmbientCaps(cmd)
 
 	alias, err := srv.Mux.Start(cmd, options)
 	if err != nil {
@@ -140,7 +123,7 @@ func (srv *MuxTerminalService) OpenWithOptions(ctx context.Context, req *api.Ope
 	}, nil
 }
 
-// Close closes a terminal for the given alias.
+// Shutdown closes a terminal for the given alias.
 func (srv *MuxTerminalService) Shutdown(ctx context.Context, req *api.ShutdownTerminalRequest) (*api.ShutdownTerminalResponse, error) {
 	err := srv.Mux.CloseTerminal(ctx, req.Alias, req.ForceSuccess)
 	if err == ErrNotFound {

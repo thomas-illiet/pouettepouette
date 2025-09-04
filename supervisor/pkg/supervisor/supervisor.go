@@ -11,12 +11,15 @@ import (
 	"supervisor/pkg/config"
 	"supervisor/pkg/editor"
 	"supervisor/pkg/service"
+	"supervisor/pkg/service/pkg"
 	"supervisor/pkg/service/system"
 	"supervisor/pkg/service/utility"
+	"supervisor/pkg/terminal"
 	"sync"
 	"syscall"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -73,6 +76,8 @@ func Run() {
 	services := []service.RegisterableService{
 		&system.SystemService{Cfg: cfg},
 		&utility.UtilityService{},
+		&terminal.MuxTerminalService{},
+		&pkg.PackageService{},
 	}
 	services = append(services)
 	go startGrpcEndpoint(ctx, cfg, &wg, services)
@@ -106,8 +111,8 @@ func startGrpcEndpoint(ctx context.Context, cfg *config.Config, wg *sync.WaitGro
 	var streamInterceptors []grpc.StreamServerInterceptor
 
 	//if cfg.DebugEnable {
-	//	unaryInterceptors = append(unaryInterceptors, grpc_logrus.UnaryServerInterceptor(log.Log))
-	//	streamInterceptors = append(streamInterceptors, grpc_logrus.StreamServerInterceptor(log.Log))
+	unaryInterceptors = append(unaryInterceptors, grpc_logrus.UnaryServerInterceptor(log.Log))
+	streamInterceptors = append(streamInterceptors, grpc_logrus.StreamServerInterceptor(log.Log))
 	//}
 
 	// Add gprc recover, must be last, to be executed first after the rpc handler,

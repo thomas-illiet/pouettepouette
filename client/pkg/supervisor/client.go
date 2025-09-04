@@ -17,6 +17,7 @@ type SupervisorClient struct {
 	closeOnce sync.Once
 
 	// Service clients
+	Package api.PackageServiceClient
 	System  api.SystemServiceClient
 	Utility api.UtilityServiceClient
 }
@@ -35,6 +36,7 @@ func New(ctx context.Context) (*SupervisorClient, error) {
 
 	return &SupervisorClient{
 		conn:    conn,
+		Package: api.NewPackageServiceClient(conn),
 		System:  api.NewSystemServiceClient(conn),
 		Utility: api.NewUtilityServiceClient(conn),
 	}, nil

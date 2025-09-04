@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package supervisor;
+
+option go_package = 'supervisor/api';
+
+service SystemService {
+  //
+  rpc WorkspaceInfo(WorkspaceInfoRequest) returns (WorkspaceInfoResponse) {}
+
+  // ResourcesStatus provides workspace resources status information.
+  rpc ResourcesStatus(ResourcesStatusRequest) returns (ResourcesStatusResponse) {}
+}
+
+//region WorkspaceInfo
+
+message WorkspaceInfoRequest {}
+
+message WorkspaceInfoResponse {
+  // workspace_id is the instance ID of this workspace.
+  int64 workspace_id = 1;
+
+  // checkout_location is the path where we initialized the workspace content
+  string checkout_location = 2;
+
+  // user_home is the path to the user's home.
+  string user_home = 3;
+
+  // workspace_cluster_host provides the cluster host under which this workspace is served
+  string cluster_host = 4;
+
+  // workspace_url is an URL for which the workspace is accessed.
+  string workspace_url = 5;
+
+  // ide_alias is an alias of IDE to be run. Possible values: "code", "code-latest", "theia"
+  string ide_alias = 6;
+
+  // ide_port is the port on which the IDE is to be run
+  uint32 ide_port = 7;
+
+  // owner_id is user id who owns the workspace
+  int64 owner_id = 8;
+}
+
+//endregion WorkspaceInfo
+
+//region ResourcesStatus
+
+message ResourcesStatusRequest {}
+
+message ResourcesStatusResponse {
+  // Name of the flavor
+  string flavor = 1;
+  // Used memory and limit in bytes
+  ResourceStatus memory = 2;
+  // Used CPU and limit in millicores.
+  ResourceStatus cpu = 3;
+  // Used Disk and limit in bytes
+  ResourceStatus disk = 4;
+}
+
+message ResourceStatus {
+  int64 used = 1;
+  int64 limit = 2;
+  ResourceStatusSeverity severity = 3;
+}
+
+enum ResourceStatusSeverity {
+  normal = 0;
+  warning = 1;
+  danger = 2;
+}
+
+//endregion ResourcesStatus
+
+
